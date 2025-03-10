@@ -27,14 +27,25 @@ Then create a SYSTEMD service (or any init/service system file) to run the serve
 
 *NOTE: the 'database' is created in the working directory of the server as database.json*
 
+Then make sure you add BOODSCHAPPIES_HMAC_KEY to your env.  
+Or as alternative add it to the Settings.toml (UNSAFE)
+
 Finally run your service
 
-OPTIONAL: run caddy/nginx/whatever to expose the server (it runs on 127.0.0.1:30301 by default)
+RECOMMENDED: run caddy/nginx/whatever to use HTTPS
 
 
+## Configuration
+
+run the server once to generate the default configuration (Settings.toml)
+
+**NOTE: DO NOT FORGET THE CHANGE THE HMAC KEY**
+
+all configuration can be overwritten with environment variables, i.e:
+
+`BOODSCHAPPIES_HMAC_KEY="mysupersecretkey" boodschappies-http`
 
 ## TODO
-- configurable host/port
 - improve stability (server will currently crash when errors happen)
 - add logging system
-- Some form of authentication or a PSK/HMAC to make sure no strangers can find your server and use it
+- Cleanup/move ''database''

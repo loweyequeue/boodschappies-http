@@ -1,7 +1,8 @@
 use std::io::{Read, Write};
 
 use actix_web::{
-    delete, get, post, put, rt, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
+    delete, get, middleware, post, put, rt, web, App, Error, HttpRequest, HttpResponse, HttpServer,
+    Responder,
 };
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
@@ -10,6 +11,8 @@ use tokio::sync::{
     Mutex,
 };
 
+mod configuration;
+mod hmac_middleware;
 mod http_models;
 
 const DATABASE_PATH: &str = "./database.json";
@@ -185,8 +188,16 @@ async fn main() -> std::io::Result<()> {
         sender: channel(10).0,
     });
 
+    let binding = format!(
+        "{}:{}",
+        configuration::CONFIGURATION.host,
+        configuration::CONFIGURATION.port
+    );
+
     HttpServer::new(move || {
         App::new()
+            // Add the HMAC middleware
+            .wrap(middleware::from_fn(hmac_middleware::hmac_middleware))
             // Pass the live update channel around
             .app_data(app_state.clone())
             // Register the route handlers
@@ -198,7 +209,7 @@ async fn main() -> std::io::Result<()> {
             // Ws for live updates
             .service(ws_updates)
     })
-    .bind("127.0.0.1:30301")?
+    .bind(&binding)?
     .run()
     .await
 }
